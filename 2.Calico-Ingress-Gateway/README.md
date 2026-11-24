@@ -159,9 +159,6 @@ kubectl get tigerastatus gatewayapi
 
 ### 3. Create the host-network EnvoyProxy
 
-> [!NOTE]
-> On Calico Enterprise 3.23, the Envoy Gateway controller (`envoy-gateway`) and the Envoy pods for each Gateway run in the **`tigera-gateway`** namespace, not in `calico-system` or `calico-ingress`. The operator also keeps its copy of your EnvoyProxy there.
-
 The `EnvoyProxy` says **how** Envoy runs: as a DaemonSet on the worker nodes, on the host network, binding listener ports such as 443 and 80 directly on each node.
 
 ```yaml
@@ -204,7 +201,7 @@ EOF
 
 ```bash
 kubectl get tigerastatus gatewayapi
-kubectl -n tigera-gateway get deploy envoy-gateway
+kubectl -n calico-system get deploy envoy-gateway
 kubectl get gatewayclass
 ```
 
@@ -257,7 +254,7 @@ EOF
 **Validate** (Envoy pods on both workers, pod IP = node IP; listener programmed):
 
 ```bash
-kubectl -n tigera-gateway get pods -o wide -l gateway.envoyproxy.io/owning-gateway-name=calico-ingress-shared
+kubectl -n calico-ingress get pods -o wide -l gateway.envoyproxy.io/owning-gateway-name=calico-ingress-shared
 gw_listeners
 ```
 
@@ -268,7 +265,7 @@ manager: attachedRoutes=0  Programmed=True  ResolvedRefs=True (ResolvedRefs)
 ```
 
 > [!NOTE]
-> `kubectl get gateway` shows `PROGRAMMED True` with an address from `10.50.0.0/26`: the Gateway's `LoadBalancer` Service gets its IP from the Lab 1 LoadBalancer pool. Without that pool it shows `PROGRAMMED False (AddressNotAssigned)`, which is also fine in host-network mode: traffic reaches Envoy on the nodes' port 443 either way. Use `gw_listeners` to check the listeners.
+> `kubectl get gateway` shows `PROGRAMMED False (AddressNotAssigned)`. That's expected in host-network mode: traffic reaches Envoy on the nodes, not through the Gateway's `LoadBalancer` Service. Use `gw_listeners` instead.
 
 ### 2. Create the TLSRoute
 
@@ -1066,7 +1063,7 @@ EOF
 
 ```bash
 route_status calico-ingress httproute https-redirect
-WORKER_IP=$(kubectl -n tigera-gateway get pods -l gateway.envoyproxy.io/owning-gateway-name=calico-ingress-shared -o jsonpath='{.items[0].status.hostIP}')
+WORKER_IP=$(kubectl -n calico-ingress get pods -l gateway.envoyproxy.io/owning-gateway-name=calico-ingress-shared -o jsonpath='{.items[0].status.hostIP}')
 echo ${WORKER_IP}
 ```
 
