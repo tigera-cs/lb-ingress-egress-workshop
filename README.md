@@ -16,7 +16,7 @@ Based on [Kubernetes-Networking-Training](https://github.com/tigera-cs/Kubernete
 
 ## Lab topology
 
-![Lab topology](etc/lab-topology.png)
+![Lab topology](etc/lab-topology.svg)
 
 | Node | IP address | Role |
 |---|---|---|
